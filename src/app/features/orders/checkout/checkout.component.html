@@ -1,0 +1,213 @@
+<div class="page-hero">
+  <div class="container">
+    <h1>Checkout</h1>
+    <p>Secure checkout with fast delivery and flexible payment options</p>
+  </div>
+</div>
+
+<div class="container checkout-container">
+  @if (loading()) {
+    <div class="flex-center" style="padding:80px"><div class="spinner"></div></div>
+  } @else {
+    <div class="checkout-grid">
+      <div class="checkout-form">
+        <div class="card">
+          <div class="card-header">
+            <h3>Delivery Address</h3>
+            <span class="section-chip">Step 1</span>
+          </div>
+          <div class="card-body">
+            @if (addresses().length) {
+              <div class="saved-addresses">
+                @for (address of addresses(); track address.addressId) {
+                  <button
+                    type="button"
+                    class="saved-address"
+                    [class.active]="selectedAddressId() === address.addressId"
+                    (click)="selectAddress(address)">
+                    <strong>{{ address.fullName }}</strong>
+                    <span>{{ address.flatNumber }}, {{ address.city }}</span>
+                  </button>
+                }
+              </div>
+            }
+
+            <form [formGroup]="addressForm">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Full Name *</label>
+                  <input type="text" formControlName="fullName" class="form-control" placeholder="John Doe"
+                         [class.error]="addressForm.get('fullName')?.invalid && addressForm.get('fullName')?.touched">
+                </div>
+                <div class="form-group">
+                  <label>Mobile Number *</label>
+                  <input type="tel" formControlName="mobileNumber" class="form-control" placeholder="10-digit number"
+                         [class.error]="addressForm.get('mobileNumber')?.invalid && addressForm.get('mobileNumber')?.touched">
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Flat / House No, Street *</label>
+                <input type="text" formControlName="flatNumber" class="form-control" placeholder="123, Baker Street"
+                       [class.error]="addressForm.get('flatNumber')?.invalid && addressForm.get('flatNumber')?.touched">
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>City *</label>
+                  <input type="text" formControlName="city" class="form-control" placeholder="Mumbai"
+                         [class.error]="addressForm.get('city')?.invalid && addressForm.get('city')?.touched">
+                </div>
+                <div class="form-group">
+                  <label>State *</label>
+                  <input type="text" formControlName="state" class="form-control" placeholder="Maharashtra"
+                         [class.error]="addressForm.get('state')?.invalid && addressForm.get('state')?.touched">
+                </div>
+              </div>
+              <div class="form-group" style="max-width:200px">
+                <label>Pincode *</label>
+                <input type="text" formControlName="pincode" class="form-control" placeholder="400001"
+                       [class.error]="addressForm.get('pincode')?.invalid && addressForm.get('pincode')?.touched">
+              </div>
+              <label class="save-address-row">
+                <input type="checkbox" [checked]="saveAddress()" (change)="saveAddress.set($any($event.target).checked)">
+                Save this address for future orders
+              </label>
+            </form>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:24px">
+          <div class="card-header">
+            <h3>Payment Method</h3>
+            <span class="section-chip">Step 2</span>
+          </div>
+          <div class="card-body">
+            <div class="payment-options">
+              <label class="payment-option" [class.selected]="paymentMode()==='COD'">
+                <input type="radio" name="payment" value="COD"
+                       [checked]="paymentMode()==='COD'"
+                       (change)="paymentMode.set('COD')">
+                <div class="option-content">
+                  <span class="option-icon">COD</span>
+                  <div>
+                    <strong>Cash on Delivery</strong>
+                    <p>Pay when your order arrives</p>
+                  </div>
+                </div>
+              </label>
+
+              <label class="payment-option" [class.selected]="paymentMode()==='WALLET'">
+                <input type="radio" name="payment" value="WALLET"
+                       [checked]="paymentMode()==='WALLET'"
+                       (change)="paymentMode.set('WALLET')">
+                <div class="option-content">
+                  <span class="option-icon">WL</span>
+                  <div>
+                    <strong>BookNest Wallet</strong>
+                    <p>
+                      Balance:
+                      @if (wallet()) {
+                        <strong [class.text-danger]="insufficientBalance">Rs {{ wallet()!.currentBalance | number:'1.0-0' }}</strong>
+                      } @else { Not set up - <a routerLink="/wallet">Add money</a> }
+                    </p>
+                  </div>
+                </div>
+              </label>
+
+              <label class="payment-option" [class.selected]="paymentMode()==='STRIPE'">
+                <input type="radio" name="payment" value="STRIPE"
+                       [checked]="paymentMode()==='STRIPE'"
+                       (change)="paymentMode.set('STRIPE')">
+                <div class="option-content">
+                  <span class="option-icon">ST</span>
+                  <div>
+                    <strong>Stripe</strong>
+                    <p>Pay online using card/UPI via Stripe</p>
+                  </div>
+                </div>
+              </label>
+            </div>
+
+            @if (insufficientBalance) {
+              <div class="insufficient-msg">
+                Insufficient balance. <a routerLink="/wallet">Add money to wallet</a> or use Cash on Delivery.
+              </div>
+            }
+
+            @if (paymentMode() === 'STRIPE') {
+
+              <div class="insufficient-msg" style="margin-top:12px">
+                Step 1: Create Stripe payment intent, complete payment, then place order.
+              </div>
+              <button type="button" class="btn btn-secondary" (click)="createStripePaymentIntent()">
+                Create Stripe Payment Intent
+              </button>
+              <div id="stripe-payment-element" style="margin-top:12px;"></div>
+
+              <button type="button"
+                      class="btn btn-primary"
+                      style="margin-top:12px"
+                      (click)="confirmStripePayment()"
+                      [disabled]="stripeProcessing()">
+                  {{ stripeProcessing() ? 'Processing...' : 'Pay with Stripe' }}
+              </button>
+
+              @if (stripeIntent()) {
+                <p style="margin-top:10px;font-size:13px">
+                  Intent ID: <strong>{{ stripeIntent()!.paymentIntentId }}</strong><br>
+                  Amount: Rs {{ stripeIntent()!.amount | number:'1.0-0' }} ({{ stripeIntent()!.currency | uppercase }})
+                </p>
+              }
+              <div class="form-group" style="margin-top:10px">
+                <label>Stripe Payment Reference ID *</label>
+                <input type="text" class="form-control"
+                       [value]="stripePaymentReferenceId()"
+                       (input)="stripePaymentReferenceId.set($any($event.target).value)"
+                       placeholder="pi_...">
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="checkout-summary">
+        <div class="card">
+          <div class="card-header">
+            <h3>Order Summary</h3>
+            <span class="section-chip">Final</span>
+          </div>
+          <div class="card-body">
+            <div class="checkout-items">
+              @for (item of cart()?.items || []; track item.itemId) {
+                <div class="checkout-item">
+                  <img [src]="item.coverImageUrl || 'assets/images/book-placeholder.png'"
+                       [alt]="item.bookTitle"
+                       onerror="this.src='assets/images/book-placeholder.png'">
+                  <div class="item-detail">
+                    <p class="item-name">{{ item.bookTitle }}</p>
+                    <p class="item-meta">Qty: {{ item.quantity }} x Rs {{ item.price | number:'1.0-0' }}</p>
+                  </div>
+                  <span class="item-total">Rs {{ item.subtotal | number:'1.0-0' }}</span>
+                </div>
+              }
+            </div>
+
+            <div class="summary-totals">
+              <div class="total-row"><span>Subtotal</span><span>Rs {{ cart()?.totalPrice | number:'1.0-0' }}</span></div>
+              <div class="total-row"><span>Delivery</span><span class="free">FREE</span></div>
+              <div class="total-divider"></div>
+              <div class="total-row grand"><strong>Total</strong><strong>Rs {{ cart()?.totalPrice | number:'1.0-0' }}</strong></div>
+            </div>
+
+            <button class="btn btn-primary btn-full btn-lg" style="margin-top:24px"
+                    (click)="placeOrder()"
+                        [disabled]="placing() || insufficientBalance || addressForm.invalid">
+              @if (placing()) { <span class="spinner spinner-sm"></span> }
+              {{ placing() ? 'Placing Order...' : (paymentMode() === 'COD' ? 'Place Order (COD)' : (paymentMode() === 'WALLET' ? 'Pay & Place Order' : 'Place Order')) }}
+            </button>
+            <a routerLink="/cart" class="btn btn-secondary btn-full" style="margin-top:12px">Back to Cart</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

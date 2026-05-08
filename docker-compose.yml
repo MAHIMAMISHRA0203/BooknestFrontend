@@ -1,0 +1,221 @@
+version: '3.8'
+
+services:
+
+  # ─── MySQL ───────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: booknest-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: booknest123
+      MYSQL_USER: booknest
+      MYSQL_PASSWORD: booknest123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - booknest-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─── Eureka Server ───────────────────────────────────────
+  eureka-server:
+    build: ./eureka-server
+    container_name: booknest-eureka
+    ports:
+      - "8761:8761"
+    networks:
+      - booknest-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  # ─── API Gateway ─────────────────────────────────────────
+  api-gateway:
+    build: ./api-gateway
+    container_name: booknest-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - booknest-network
+
+  # ─── Auth Service ─────────────────────────────────────────
+  auth-service:
+    build: ./auth-service
+    container_name: booknest-auth
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/booknest_auth?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: booknest123
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - booknest-network
+
+  # ─── Book Service ─────────────────────────────────────────
+  book-service:
+    build: ./book-service
+    container_name: booknest-book
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/booknest_books?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: booknest123
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - booknest-network
+
+  # ─── Cart Service ─────────────────────────────────────────
+  cart-service:
+    build: ./cart-service
+    container_name: booknest-cart
+    ports:
+      - "8083:8083"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/booknest_cart?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: booknest123
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - booknest-network
+
+  # ─── Order Service ────────────────────────────────────────
+  order-service:
+    build: ./order-service
+    container_name: booknest-order
+    ports:
+      - "8084:8084"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/booknest_orders?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: booknest123
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - booknest-network
+
+  # ─── Wallet Service ───────────────────────────────────────
+  wallet-service:
+    build: ./wallet-service
+    container_name: booknest-wallet
+    ports:
+      - "8085:8085"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/booknest_wallet?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: booknest123
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - booknest-network
+
+  # ─── Review Service ───────────────────────────────────────
+  review-service:
+    build: ./review-service
+    container_name: booknest-review
+    ports:
+      - "8086:8086"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/booknest_reviews?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: booknest123
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - booknest-network
+
+  # ─── Notification Service ─────────────────────────────────
+  notification-service:
+    build: ./notification-service
+    container_name: booknest-notification
+    ports:
+      - "8087:8087"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/booknest_notifications?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: booknest123
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - booknest-network
+
+  # ─── Wishlist Service ─────────────────────────────────────
+  wishlist-service:
+    build: ./wishlist-service
+    container_name: booknest-wishlist
+    ports:
+      - "8088:8088"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/booknest_wishlist?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: booknest123
+      EUREKA_URI: http://eureka-server:8761/eureka/
+    depends_on:
+      mysql:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - booknest-network
+
+  # ─── Angular Frontend ─────────────────────────────────────
+  frontend:
+    build: ./booknest-frontend
+    container_name: booknest-frontend
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - booknest-network
+
+networks:
+  booknest-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

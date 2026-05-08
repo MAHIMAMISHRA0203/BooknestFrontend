@@ -1,0 +1,126 @@
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="container hero-content">
+    <div class="hero-text slide-up">
+      <span class="hero-tag">📚 Discover. Read. Belong.</span>
+      <h1>Your Next Favourite<br><span class="hero-accent">Book Awaits You</span></h1>
+      <p>Explore thousands of books across every genre. From timeless classics to modern bestsellers — find your perfect read.</p>
+      <div class="hero-actions">
+        <a routerLink="/books" class="btn btn-primary btn-lg">Browse Collection</a>
+        <a routerLink="/register" class="btn btn-outline-light btn-lg">Join Free</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><span class="stat-num">10,000+</span><span class="stat-label">Books</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-num">50+</span><span class="stat-label">Genres</span></div>
+        <div class="stat-divider"></div>
+        <div class="stat"><span class="stat-num">1M+</span><span class="stat-label">Readers</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="book-stack">
+        <div class="floating-book b1">📗</div>
+        <div class="floating-book b2">📘</div>
+        <div class="floating-book b3">📕</div>
+        <div class="floating-book b4">📙</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ GENRES ═══ -->
+<section class="section-sm">
+  <div class="container">
+    <div class="section-title">
+      <span class="subtitle">Explore by Category</span>
+      <h2>Browse Genres</h2>
+      <div class="divider"></div>
+    </div>
+    <div class="genres-grid stagger">
+      @for (g of genres; track g.name) {
+        <a [routerLink]="['/books']" [queryParams]="{genre: g.name}" class="genre-card">
+          <span class="genre-icon" [style.background]="g.color + '20'" [style.color]="g.color">{{ g.icon }}</span>
+          <span class="genre-name">{{ g.name }}</span>
+          <span class="genre-arrow">→</span>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURED ═══ -->
+@if (featured().length > 0) {
+  <section class="section featured-section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-title" style="text-align:left; margin-bottom:0">
+          <span class="subtitle">Hand-picked for You</span>
+          <h2>Featured Books</h2>
+          <div class="divider" style="margin:12px 0 0"></div>
+        </div>
+        <a routerLink="/books" class="btn btn-outline-gold">View All →</a>
+      </div>
+      <div class="grid-4 stagger" style="margin-top:40px">
+        @for (book of featured(); track book.bookId) {
+          <app-book-card [book]="book"></app-book-card>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<!-- ═══ PROMO BANNER ═══ -->
+<section class="promo-banner">
+  <div class="container">
+    <div class="promo-content">
+      <div>
+        <h2>New to BookNest?</h2>
+        <p>Create your free account and get access to exclusive deals, wishlists, and personalised recommendations.</p>
+      </div>
+      <div class="promo-actions">
+        <a routerLink="/register" class="btn btn-primary btn-lg">Create Free Account</a>
+        <a routerLink="/books" class="btn btn-outline-light">Browse First</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ NEW ARRIVALS ═══ -->
+@if (newArrivals().length > 0) {
+  <section class="section">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-title" style="text-align:left; margin-bottom:0">
+          <span class="subtitle">Just Added</span>
+          <h2>New Arrivals</h2>
+          <div class="divider" style="margin:12px 0 0"></div>
+        </div>
+        <a routerLink="/books" class="btn btn-outline-gold">See All →</a>
+      </div>
+      <div class="grid-4 stagger" style="margin-top:40px">
+        @for (book of newArrivals(); track book.bookId) {
+          <app-book-card [book]="book"></app-book-card>
+        }
+      </div>
+    </div>
+  </section>
+}
+
+<!-- ═══ TOP RATED ═══ -->
+@if (topRated().length > 0) {
+  <section class="section" style="background: var(--cream-dark); padding: 80px 0;">
+    <div class="container">
+      <div class="section-title">
+        <span class="subtitle">Loved by Readers</span>
+        <h2>Top Rated Books</h2>
+        <div class="divider"></div>
+      </div>
+      <div class="grid-4 stagger">
+        @for (book of topRated(); track book.bookId) {
+          <app-book-card [book]="book"></app-book-card>
+        }
+      </div>
+    </div>
+  </section>
+}
