@@ -1,0 +1,24 @@
+.admin-section { padding: 40px 24px; max-width: 1280px; margin: 0 auto; padding-top: 112px; }
+
+.admin-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; h2 { font-size: 1.8rem; } }
+
+.admin-table-wrap { background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; }
+
+.table-search { margin: 20px; width: calc(100% - 40px); max-width: 400px; }
+
+.admin-table {
+  width: 100%; border-collapse: collapse; font-size: 0.875rem;
+
+  th { background: var(--navy); color: white; padding: 14px 16px; text-align: left; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+  td { padding: 14px 16px; border-bottom: 1px solid var(--cream-dark); color: var(--text-dark); vertical-align: middle; }
+  tr:last-child td { border: none; }
+  tr:hover td { background: var(--cream); }
+}
+
+.table-cover { width: 40px; height: 54px; object-fit: cover; border-radius: 4px; }
+.table-actions { display: flex; gap: 8px; white-space: nowrap; }
+
+.btn-warning { background: var(--warning); color: white; &:hover { background: #d68910; } }
+.btn-success { background: var(--success); color: white; &:hover { background: #229954; } }
+
+@media (max-width: 768px) { .admin-table { font-size: 0.8rem; } th, td { padding: 10px 12px; } }

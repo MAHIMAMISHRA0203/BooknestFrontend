@@ -1,0 +1,91 @@
+<nav class="navbar" [class.scrolled]="scrolled()">
+  <div class="nav-container">
+
+    <!-- Logo -->
+    <a routerLink="/" class="nav-logo" (click)="closeMobile()">
+      <span class="logo-icon">📚</span>
+      <span class="logo-text">Book<span class="logo-accent">Nest</span></span>
+    </a>
+
+    <!-- Desktop Nav Links -->
+    <ul class="nav-links">
+      <li><a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Home</a></li>
+      <li><a routerLink="/books" routerLinkActive="active">Books</a></li>
+      @if (auth.isLoggedIn()) {
+        <li><a routerLink="/orders" routerLinkActive="active">My Orders</a></li>
+        <li><a routerLink="/wishlist" routerLinkActive="active">Wishlist</a></li>
+        @if (auth.isAdmin()) {
+          <li><a routerLink="/admin" routerLinkActive="active" class="admin-link">Admin</a></li>
+        }
+      }
+    </ul>
+
+    <!-- Desktop Actions -->
+    <div class="nav-actions">
+      @if (auth.isLoggedIn()) {
+        <!-- Notifications -->
+        <a routerLink="/notifications" class="nav-icon-btn" title="Notifications">
+          <span class="icon">🔔</span>
+          @if (unreadCount() > 0) {
+            <span class="badge-dot">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+          }
+        </a>
+
+        <!-- Cart -->
+        <a routerLink="/cart" class="nav-icon-btn" title="Cart">
+          <span class="icon">🛒</span>
+        </a>
+
+        <!-- Wallet -->
+        <a routerLink="/wallet" class="nav-icon-btn" title="Wallet">
+          <span class="icon">💳</span>
+        </a>
+
+        <!-- Profile Dropdown -->
+        <div class="profile-menu">
+          <button class="profile-btn">
+            <span class="avatar">{{ auth.currentUser()?.fullName?.charAt(0)?.toUpperCase() }}</span>
+            <span class="profile-name">{{ (auth.currentUser()?.fullName || '').split(' ')[0] }}</span>
+            <span class="chevron">▾</span>
+          </button>
+          <div class="dropdown">
+            <a routerLink="/profile" class="dropdown-item">👤 My Profile</a>
+            <a routerLink="/orders" class="dropdown-item">📦 My Orders</a>
+            <a routerLink="/wallet" class="dropdown-item">💳 Wallet</a>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout-btn" (click)="logout()">🚪 Logout</button>
+          </div>
+        </div>
+      } @else {
+        <a routerLink="/login" class="btn btn-secondary btn-sm">Login</a>
+        <a routerLink="/register" class="btn btn-primary btn-sm">Get Started</a>
+      }
+    </div>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-toggle" (click)="toggleMobile()" [class.open]="mobileOpen()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" [class.open]="mobileOpen()">
+    <a routerLink="/" (click)="closeMobile()">Home</a>
+    <a routerLink="/books" (click)="closeMobile()">Browse Books</a>
+    @if (auth.isLoggedIn()) {
+      <a routerLink="/cart" (click)="closeMobile()">🛒 Cart</a>
+      <a routerLink="/orders" (click)="closeMobile()">📦 My Orders</a>
+      <a routerLink="/wishlist" (click)="closeMobile()">❤️ Wishlist</a>
+      <a routerLink="/wallet" (click)="closeMobile()">💳 Wallet</a>
+      <a routerLink="/notifications" (click)="closeMobile()">🔔 Notifications</a>
+      <a routerLink="/profile" (click)="closeMobile()">👤 Profile</a>
+      @if (auth.isAdmin()) {
+        <a routerLink="/admin" (click)="closeMobile()">⚙️ Admin Panel</a>
+      }
+      <button class="btn btn-danger btn-full" (click)="logout()">Logout</button>
+    } @else {
+      <a routerLink="/login" (click)="closeMobile()" class="btn btn-secondary btn-full">Login</a>
+      <a routerLink="/register" (click)="closeMobile()" class="btn btn-primary btn-full">Get Started</a>
+    }
+  </div>
+</nav>

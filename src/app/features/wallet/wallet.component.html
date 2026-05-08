@@ -1,0 +1,93 @@
+<div class="page-hero wallet-hero">
+  <div class="container">
+    <h1>My <span class="hero-accent">Wallet</span></h1>
+    <p>Manage your BookNest balance and transaction history</p>
+  </div>
+</div>
+
+<div class="container wallet-container">
+  @if (loading()) {
+    <div class="flex-center" style="padding:80px"><div class="spinner"></div></div>
+  } @else {
+    <div class="wallet-layout">
+
+      <!-- Balance Card -->
+      <div class="balance-card">
+        <div class="balance-bg"></div>
+        <div class="balance-content">
+          <span class="balance-label">Available Balance</span>
+          <div class="balance-amount">
+            <span class="currency">₹</span>
+            <span class="amount">{{ wallet()?.currentBalance | number:'1.0-0' }}</span>
+          </div>
+          <p class="wallet-id">Wallet #{{ wallet()?.walletId }}</p>
+        </div>
+        <div class="balance-actions">
+          <button class="btn btn-primary" (click)="toggleAddMoneyForm()">
+            {{ showAddForm() ? '✕ Cancel' : '+ Add Money' }}
+          </button>
+          <a routerLink="/checkout" class="btn btn-outline-light">Shop Now →</a>
+        </div>
+
+        <!-- Add Money Form -->
+        @if (showAddForm()) {
+          <div class="add-money-form">
+            <p class="form-title">Select or enter amount</p>
+            <div class="quick-amounts">
+              @for (amt of quickAmounts; track amt) {
+                <button class="quick-btn" [class.selected]="addAmount()===amt"
+                        (click)="addAmount.set(amt)">₹{{ amt }}</button>
+              }
+            </div>
+            <div class="custom-amount">
+              <span class="rupee-prefix">₹</span>
+              <input type="number" [value]="addAmount()"
+                     (input)="addAmount.set(+$any($event.target).value)"
+                     placeholder="Enter custom amount" min="1">
+            </div>
+            <button class="btn btn-primary btn-full" (click)="addMoney()"
+                    [disabled]="adding() || !addAmount() || addAmount() <= 0">
+              @if (adding()) { <span class="spinner spinner-sm"></span> }
+              {{ adding() ? 'Processing...' : 'Add ₹' + addAmount() + ' to Wallet' }}
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Statements -->
+      <div class="statements-panel">
+        <div class="panel-header">
+          <h3>Transaction History</h3>
+          <span class="badge badge-navy">{{ statements().length }} transactions</span>
+        </div>
+
+        @if (statements().length > 0) {
+          <div class="statements-list stagger">
+            @for (s of statements(); track s.statementId) {
+              <div class="statement-row" [class.deposit]="s.transactionType==='DEPOSIT'" [class.withdrawal]="s.transactionType==='WITHDRAWAL'">
+                <div class="txn-icon">
+                  {{ s.transactionType === 'DEPOSIT' ? '⬆️' : '⬇️' }}
+                </div>
+                <div class="txn-info">
+                  <p class="txn-remarks">{{ s.transactionRemarks || s.transactionType }}</p>
+                  <p class="txn-date">{{ s.dateTime | date:'medium' }}</p>
+                  @if (s.orderId) { <p class="txn-order">Order reference available</p> }
+                </div>
+                <div class="txn-amount" [class.credit]="s.transactionType==='DEPOSIT'" [class.debit]="s.transactionType==='WITHDRAWAL'">
+                  {{ s.transactionType === 'DEPOSIT' ? '+' : '-' }}₹{{ s.amount | number:'1.0-0' }}
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="empty-state" style="padding:40px 0">
+            <div class="empty-icon">📊</div>
+            <h3>No transactions yet</h3>
+            <p>Add money to your wallet to get started.</p>
+          </div>
+        }
+      </div>
+
+    </div>
+  }
+</div>

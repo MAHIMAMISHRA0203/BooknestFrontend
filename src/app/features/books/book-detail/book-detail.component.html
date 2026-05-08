@@ -1,0 +1,177 @@
+@if (loading()) {
+  <div class="loading-overlay"><div class="spinner"></div></div>
+}
+
+@if (book(); as b) {
+<div class="book-detail-page">
+
+  <!-- Breadcrumb -->
+  <div class="breadcrumb-bar">
+    <div class="container">
+      <a routerLink="/">Home</a> /
+      <a routerLink="/books">Books</a> /
+      <span>{{ b.title }}</span>
+    </div>
+  </div>
+
+  <!-- Main Detail -->
+  <section class="detail-section">
+    <div class="container">
+      <div class="detail-grid">
+
+        <!-- Cover -->
+        <div class="cover-col">
+          <div class="cover-wrap">
+            <img [src]="b.coverImageUrl || 'assets/images/book-placeholder.png'"
+                 [alt]="b.title"
+                 onerror="this.src='assets/images/book-placeholder.png'">
+            @if (b.featured) { <div class="featured-ribbon">⭐ Featured</div> }
+          </div>
+          <div class="cover-actions">
+            <button class="btn btn-outline-gold btn-full" (click)="addToWishlist()">
+              ❤️ Add to Wishlist
+            </button>
+          </div>
+        </div>
+
+        <!-- Info -->
+        <div class="info-col">
+          <span class="genre-tag">{{ b.genre }}</span>
+          <h1 class="book-title">{{ b.title }}</h1>
+          <p class="book-author">by <strong>{{ b.author }}</strong></p>
+          @if (b.publisher) { <p class="publisher">Publisher: {{ b.publisher }}</p> }
+
+          <!-- Rating -->
+          <div class="rating-row">
+            <div class="stars">
+              @for (s of getStars(summary()?.averageRating || b.rating); track $index) {
+                <span [class]="s==='★' ? 'star-filled' : 'star-empty'">{{ s }}</span>
+              }
+            </div>
+            <span class="rating-val">{{ (summary()?.averageRating || b.rating) | number:'1.1-1' }}</span>
+            <span class="rating-count">({{ summary()?.totalReviews || 0 }} reviews)</span>
+          </div>
+
+          <!-- Price -->
+          <div class="price-block">
+            <span class="price-label">Price</span>
+            <div class="price-tag">
+              <span class="currency">₹</span>
+              <span class="amount">{{ b.price | number:'1.0-0' }}</span>
+            </div>
+          </div>
+
+          <!-- Stock -->
+          <div class="stock-row">
+            @if (b.inStock) {
+              <span class="badge badge-success">✓ In Stock ({{ b.stock }} available)</span>
+            } @else {
+              <span class="badge badge-error">✗ Out of Stock</span>
+            }
+          </div>
+
+          <!-- Quantity + Cart -->
+          @if (b.inStock) {
+            <div class="cart-row">
+              <div class="qty-control">
+                <button (click)="adjustQty(-1)" [disabled]="quantity()===1">−</button>
+                <span>{{ quantity() }}</span>
+                <button (click)="adjustQty(1)" [disabled]="quantity()===b.stock">+</button>
+              </div>
+              <button class="btn btn-primary btn-lg flex-1" (click)="addToCart()">
+                🛒 Add to Cart
+              </button>
+            </div>
+          }
+
+          <!-- Specs -->
+          <div class="specs-grid">
+            @if (b.isbn)          { <div class="spec"><span class="spec-label">ISBN</span><span>{{ b.isbn }}</span></div> }
+            @if (b.publishedDate) { <div class="spec"><span class="spec-label">Published</span><span>{{ b.publishedDate | date:'mediumDate' }}</span></div> }
+            <div class="spec"><span class="spec-label">Genre</span><span>{{ b.genre }}</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      @if (b.description) {
+        <div class="description-block">
+          <h3>About This Book</h3>
+          <p>{{ b.description }}</p>
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Reviews -->
+  <section class="reviews-section">
+    <div class="container">
+      <div class="reviews-header">
+        <h2>Reader Reviews</h2>
+        @if (auth.isLoggedIn()) {
+          <button class="btn btn-outline-gold" (click)="toggleReviewForm()">
+            {{ showReviewForm() ? 'Cancel' : '✍️ Write a Review' }}
+          </button>
+        } @else {
+          <a routerLink="/login" class="btn btn-outline-gold">Login to Review</a>
+        }
+      </div>
+
+      <!-- Review Form -->
+      @if (showReviewForm()) {
+        <div class="review-form-card">
+          <h4>Your Review</h4>
+          <div class="star-input">
+            <span>Rating:</span>
+            @for (i of [1,2,3,4,5]; track i) {
+              <button class="star-btn" [class.active]="i <= reviewRating()"
+                      (click)="reviewRating.set(i)">★</button>
+            }
+            <span class="rating-text">{{ reviewRating() }}/5</span>
+          </div>
+          <textarea class="form-control" rows="4" placeholder="Share your thoughts about this book..."
+                    [value]="reviewComment()"
+                    (input)="reviewComment.set($any($event.target).value)"></textarea>
+          <div style="display:flex; gap:12px; margin-top:16px">
+            <button class="btn btn-primary" (click)="submitReview()" [disabled]="submittingReview()">
+              @if (submittingReview()) { <span class="spinner spinner-sm"></span> }
+              Submit Review
+            </button>
+            <button class="btn btn-secondary" (click)="showReviewForm.set(false)">Cancel</button>
+          </div>
+        </div>
+      }
+
+      <!-- Reviews List -->
+      @if (reviews().length > 0) {
+        <div class="reviews-list stagger">
+          @for (r of reviews(); track r.reviewId) {
+            <div class="review-card">
+              <div class="review-header">
+                <div class="reviewer-avatar">{{ r.userName.charAt(0).toUpperCase() }}</div>
+                <div class="reviewer-info">
+                  <strong>{{ r.userName }}</strong>
+                  @if (r.verified) { <span class="badge badge-success" style="font-size:0.65rem">✓ Verified</span> }
+                  <div class="review-stars">
+                    @for (s of getStars(r.rating); track $index) {
+                      <span [class]="s==='★'?'star-filled':'star-empty'">{{ s }}</span>
+                    }
+                  </div>
+                </div>
+                <span class="review-date">{{ r.reviewDate | date:'mediumDate' }}</span>
+              </div>
+              @if (r.comment) { <p class="review-comment">{{ r.comment }}</p> }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state" style="padding:40px 0">
+          <div class="empty-icon">✍️</div>
+          <h3>No reviews yet</h3>
+          <p>Be the first to review this book!</p>
+        </div>
+      }
+    </div>
+  </section>
+</div>
+}
